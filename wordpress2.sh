@@ -42,12 +42,13 @@ sudo a2enmod rewrite
 sudo a2dissite 000-default
 sudo service apache2 reload
 
-sudo mysql -u root
+sudo mysql -u root <<MY_QUERY
 CREATE DATABASE wordpress;
 CREATE USER wordpress@localhost IDENTIFIED BY 'mysecretpassword';
 GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,ALTER ON wordpress.* TO wordpress@localhost;
 FLUSH PRIVILEGES;
-quit
+MY_QUERY
+
 sudo service mysql start
 
 sudo -u www-data cp /srv/www/wordpress/wp-config-sample.php /srv/www/wordpress/wp-config.php
