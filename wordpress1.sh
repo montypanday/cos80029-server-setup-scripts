@@ -65,8 +65,29 @@ chmod +x wp-cli.phar
 sudo mv wp-cli.phar /usr/local/bin/wp
 
 cd /srv/www/wordpress
+
+echo '<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteBase /
+RewriteRule ^index\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
+</IfModule>
+' | sudo tee -a .htaccess > /dev/null
+
 wp core install --url="$siteurl" --title="$sitename" --admin_user="$wpuser" --admin_password="$wppass" --admin_email="$wpemail"
 
 sudo -u www-data wp config shuffle-salts
 sudo -u www-data wp plugin install miniorange-saml-20-single-sign-on
 sudo -u www-data wp plugin activate miniorange-saml-20-single-sign-on
+
+sudo -u www-data wp plugin install jwt-auth
+
+jwtsecret=$(echo $RANDOM | md5sum | head -c 20);
+
+sudo -u www-data wp config set JWT_AUTH_SECRET_KEY $jwtsecret
+sudo -u www-data wp config set JWT_AUTH_CORS_ENABLE true --raw
+
+sudo -u www-data wp plugin activate jwt-auth
